@@ -2,6 +2,8 @@
 
 class BDUtility {
     constructor(options) {
+        this.loadScript("lz-string", "https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js");
+
         this.repository = options && options.repository;
         this.plugin = options && options.plugin;
         this.console = options && options.console || options && options.plugin && options.plugin.getName() || "BD Utility";
@@ -9,19 +11,19 @@ class BDUtility {
     }
 
     log(...args) {
-        console.log(`%c[${this.console}] `, this.style, ...args);
+        console.log(`%c[${this.console || "BD Utility"}] `, this.style, ...args);
     }
 
     info(...args) {
-        console.info(`%c[${this.console}] `, this.style, ...args);
+        console.info(`%c[${this.console || "BD Utility"}] `, this.style, ...args);
     }
 
     warn(...args) {
-        console.warn(`%c[${this.console}] `, this.style, ...args);
+        console.warn(`%c[${this.console || "BD Utility"}] `, this.style, ...args);
     }
 
     error(...args) {
-        console.error(`%c[${this.console}] `, this.style, ...args);
+        console.error(`%c[${this.console || "BD Utility"}] `, this.style, ...args);
     }
 
     loadScript(item, url) {
@@ -116,11 +118,11 @@ class BDUtility {
     }
 
     saveStorage(store, data) {
-        localStorage.setItem(store, JSON.stringify(data));
+        localStorage.setItem(store, LZString.compress(JSON.stringify(data)));
     }
 
-    loadStorage(store, def) {
-        return JSON.parse(localStorage.getItem(store)) || def || {};
+    loadStorage(store, def) { // only to be used on storage saved with saveStorage
+        return localStorage.getItem(store) && JSON.parse(LZString.decompress(localStorage.getItem(store))) || def || {};
     }
 
     getReactInstance(node) {

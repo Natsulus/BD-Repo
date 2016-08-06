@@ -49,6 +49,12 @@ class SnUModifier {
                 state: false
             }
         };
+
+        this.defaultModifiers = {
+            global: {},
+            groups: {},
+            servers: {}
+        };
     }
 
     start() {
@@ -60,17 +66,30 @@ class SnUModifier {
         });
         this.utility.info("Enabled Plugin");
 
-        const css = `.snumod-input {
-            margin-top: none;
-        } 
-        .snumod-label {
-            margin-top: 7px; display: inline-block;
-            vertical-align: middle;
+        this.utility.loadScript("jQuery.serializeObject", "https://cdnjs.cloudflare.com/ajax/libs/jQuery.serializeObject/2.0.3/jquery.serializeObject.min.js");
+        this.utility.loadScript("tinyColorPicker", "https://cdnjs.cloudflare.com/ajax/libs/tinyColorPicker/1.1.1/jqColorPicker.min.js");
+
+        //this.modifiers = this.utility.loadStorage("SnU Modifier", this.defaultModifiers);
+        this.modifiers = this.defaultModifiers;
+        this.autoSaveInterval = setInterval(() => {
+            this.utility.saveStorage("SnU Modifier", this.modifiers);
+            //this.utility.log(this.modifiers);
+        }, 30000);
+
+        const css = `.control-group .snumod-input {
+            margin-top: 0px !important;
+            margin-bottom: 10px !important;
+        }
+        .snumod-form-buttons>span {
+            margin-top: 3px;
+            display: inline-block;
+        }
+        .snumod-form-buttons>span+span {
+            margin-left: 10px;
         }
         .snumod-checkbox {
-            margin-top: 7px;
+            margin-top: 15px;
         }
-
         .snumod-form-inner {
             padding-bottom: 28px !important;
         }`;
@@ -81,6 +100,7 @@ class SnUModifier {
         this.utility.info("Current User:", this.currentUser);
 
         SnUModifier.currentInstance = this;
+
         this.createSettingsPanel();
 
         // Add Tab Bar Button when Enabling
@@ -88,9 +108,6 @@ class SnUModifier {
             $(".tab-bar.SIDE").first().append(this.settingsButton);
             $(".form .settings-right .settings-inner").last().after(this.settingsPanel);
         }
-
-        this.utility.loadScript("jQuery.serializeObject", "https://cdnjs.cloudflare.com/ajax/libs/jQuery.serializeObject/2.0.3/jquery.serializeObject.min.js");
-        this.utility.loadScript("tinyColorPicker", "https://cdnjs.cloudflare.com/ajax/libs/tinyColorPicker/1.1.1/jqColorPicker.min.js");
     }
 
     stop() {
@@ -133,12 +150,37 @@ class SnUModifier {
                 $(ev.addedNodes[0]).prepend(this.attachContextButton(this.utility.getReactProps(ev.addedNodes[0])));
             }
         }
+        this.modify();
     }
 
     // Core //
 
     modify() {
-        //
+        for (const group in this.modifiers.groups) {
+            for (const user in this.modifiers.groups[group]) {
+                // pass group and user
+            }
+            // pass group
+        }
+        for (const server in this.modifiers.servers) {
+            if (this.modifiers.servers[server].channels) {
+                for (const channel in this.modifiers.servers[server].channels) {
+                    // pass server and channel
+                }
+            } else if (this.modifiers.servers[server].users) {
+                for (const user in this.modifiers.servers[server].users) {
+                    // pass server and user
+                }
+            }
+            this.modifyServerIcons(server);
+            // pass server
+        }
+        for (const user in this.modifiers.global) {
+            // pass global users
+        }
+
+        // if settings
+        // this.hidePlayingStatus();
     }
 
     modifyNicknames() {
@@ -174,8 +216,11 @@ class SnUModifier {
         //
     }
 
-    modifyServerIcons() {
-        //
+    modifyServerIcons(server) {
+        const icon = $(`.guild-inner>a[href^="/channels/${server}"]:not(".snumod-modified")`);
+
+        if (icon.length > 0 && this.modifiers.servers[server].icon)
+            icon.addClass("snumod-modified").css("background-image", `url(${this.modifiers.servers[server].icon})`);
     }
 
     modifyServerNames() {
@@ -184,6 +229,15 @@ class SnUModifier {
 
     modifyChannelNames() {
         //
+    }
+
+    modifyChannelTopics() {
+        //
+    }
+
+    hidePlayingStatus() {
+        // if settings
+        $(".member-activity").hide();
     }
 
     // Settings //
@@ -335,34 +389,34 @@ class SnUModifier {
             const groupUsersType = ["USER_GROUP_DM", "USER_CALL_AVATAR"];
             const serverUsersType = ["USER_CHANNEL_VOICE", "USER_CHANNEL_MESSAGE", "USER_CHANNEL_MEMBERS"];
 
-            if (globalUsersType.includes(props.type)) return this.createItemGroup(this.createUserModal, props, "Global");
-            else if (groupUsersType.includes(props.type)) return this.createItemGroup(this.createUserModal, props, "Group");
-            else if (serverUsersType.includes(props.type)) return this.createItemGroup(this.createUserModal, props, "Server");
+            if (globalUsersType.includes(props.type)) return this.createItemGroup("User", "Global");
+            else if (groupUsersType.includes(props.type)) return this.createItemGroup("User", props, "Group");
+            else if (serverUsersType.includes(props.type)) return this.createItemGroup("User", props, "Server");
 
             this.utility.error(`Unknown Type: ${props.type}`);
         } else if (props.type.startsWith("CHANNEL_")) {
             const textChannelType = ["CHANNEL_TITLE", "CHANNEL_TOPIC", "CHANNEL_LIST_TEXT"];
             const voiceChannelType = ["CHANNEL_LIST_VOICE"];
 
-            if (textChannelType.includes(props.type)) return this.createItemGroup(this.createChannelModal, props, "Text");
-            else if (voiceChannelType.includes(props.type)) return this.createItemGroup(this.createChannelModal, props, "Voice");
+            if (textChannelType.includes(props.type)) return this.createItemGroup("Channel", props, "Text");
+            else if (voiceChannelType.includes(props.type)) return this.createItemGroup("Channel", props, "Voice");
 
             this.utility.error(`Unknown Type: ${props.type}`);
         } else if (props.type.startsWith("GUILD_")) {
             const serverType = ["GUILD_ICON_BAR", "GUILD_HEADER"];
 
-            if (serverType.includes(props.type)) return this.createItemGroup(this.createServerModal, props);
+            if (serverType.includes(props.type)) return this.createItemGroup("Server", props);
 
             this.utility.error(`Unknown Type: ${props.type}`);
         }
     }
 
-    createItemGroup(createModal, props, type) {
+    createItemGroup(modal, props, type) {
         let usc;
 
-        if (createModal.name.includes("User")) usc = `${type} User`;
-        else if (createModal.name.includes("Server")) usc = "Server";
-        else if (createModal.name.includes("Channel")) usc = `${type} Channel`;
+        if (modal === "User") usc = `${type} User`;
+        else if (modal === "Server") usc = "Server";
+        else if (modal === "Channel") usc = `${type} Channel`;
 
         return $("<div>", {class: "item-group snumod-item-group"})
             .append($("<div>", {
@@ -376,7 +430,10 @@ class SnUModifier {
                     const span = $("<span>", {class: "snumod-modal-span"});
 
                     span.append(this.createBackdrop(span));
-                    span.append(createModal(props, type));
+
+                    if (modal === "User") span.append(this.createUserModal(props, type));
+                    else if (modal === "Server") span.append(this.createServerModal(props, type));
+                    else if (modal === "Channel") span.append(this.createChannelModal(props, type));
 
                     $("#app-mount").find(">:first-child").append(span);
 
@@ -412,6 +469,21 @@ class SnUModifier {
     }
 
     createUserModal(props, type) {
+        let defaultValue;
+
+        if (type === "Global") {
+            this.modifiers.global[props.user.id] = this.modifiers.global[props.user.id] || {};
+            defaultValue = this.modifiers.global[props.user.id];
+        } else if (type === "Server") {
+            this.modifiers.servers[props.guildId] = this.modifiers.servers[props.guildId] || {};
+            this.modifiers.servers[props.guildId].users = this.modifiers.servers[props.guildId].users || {};
+            this.modifiers.servers[props.guildId].users[props.user.id] = this.modifiers.servers[props.guildId].users[props.user.id] || {};
+            defaultValue = this.modifiers.servers[props.guildId].users[props.user.id];
+        } else {
+            this.modifiers.groups[props.channelId] = this.modifiers.groups[props.channelId] || {};
+            this.modifiers.groups[props.channelId][props.user.id] = this.modifiers.groups[props.channelId][props.user.id] || {};
+            defaultValue = this.modifiers.groups[props.channelId][props.user.id];
+        }
         const header = $("<div>", {class: "form-header snumod-form-header"}).append(`<header>Modify ${props.user.username} (${type})</header>`);
 
         const inner = $("<div>", {class: "form-inner snumod-form-inner"}).append($("<div>", {class: "control-group"})
@@ -422,7 +494,7 @@ class SnUModifier {
                 id: "snumod-usernickname",
                 name: "nickname",
                 placeholder: props.user.username,
-                value: "" // get ${type} from modifier || ""
+                value: defaultValue.nickname || ""
             }))
             .append($("<label for='snumod-useravatar' class='snumod-label'>Avatar URL</label>"))
             .append($("<input>", {
@@ -431,7 +503,7 @@ class SnUModifier {
                 id: "snumod-useravatar",
                 name: "avatar",
                 placeholder: props.user.avatar ? `https://cdn.discordapp.com/avatars/${props.user.id}/${props.user.avatar}.jpg` : "",
-                value: ""
+                value: defaultValue.avatar || ""
             }))
             .append($("<label for='snumod-usernamecolour' class='snumod-label'>Name Colour</label>"))
             .append($("<input>", {
@@ -440,7 +512,7 @@ class SnUModifier {
                 id: "snumod-usernamecolour",
                 name: "namecolour",
                 placeholder: "#",
-                value: "" // get ${type} from modifier || ""
+                value: defaultValue.namecolour || ""
             }))
             .append($("<label for='snumod-usertextcolour' class='snumod-label'>Text Colour</label>"))
             .append($("<input>", {
@@ -449,10 +521,14 @@ class SnUModifier {
                 id: "snumod-usertextcolour",
                 name: "textcolour",
                 placeholder: "#",
-                value: "" // get ${type} from modifier || ""
+                value: defaultValue.textcolour || ""
             }))
-            .append($("<div>", {class: "control-group snumod-reset"}).append("<br><label><a>Reset All</a></label><br>"))
+            .append($("<div>", {class: "control-group snumod-form-buttons"}))
             .append($("<div>", {class: "checkbox snumod-checkbox"}).append($("<div>", {class: "checkbox-inner"}))));
+
+        inner.find(".snumod-form-buttons")
+            .append($("<span>", {class: "snumod-clear-button"}).append("<label><a>Clear Form</a></label>"))
+            .append($("<span>", {class: "snumod-reset-button"}).append("<label><a>Reset Form</a></label>"));
 
         inner.find(".checkbox-inner").append($("<input>", {
             type: "checkbox",
@@ -480,11 +556,12 @@ class SnUModifier {
             const cb = $(ev.currentTarget).children().find('input[type="checkbox"]');
             const enabled = !cb.is(":checked");
 
-            if (enabled) { // get global from modifiers || ""
-                inner.find("#snumod-usernickname").val("");
-                inner.find("#snumod-useravatar").val("");
-                inner.find("#snumod-usernamecolour").val("");
-                inner.find("#snumod-usertextcolour").val("");
+            if (enabled) {
+                this.modifiers.global[props.user.id] = this.modifiers.global[props.user.id] || {};
+                inner.find("#snumod-usernickname").val(this.modifiers.global[props.user.id].nickname || "");
+                inner.find("#snumod-useravatar").val(this.modifiers.global[props.user.id].avatar || "");
+                inner.find("#snumod-usernamecolour").val(this.modifiers.global[props.user.id].namecolour || "");
+                inner.find("#snumod-usertextcolour").val(this.modifiers.global[props.user.id].textcolour || "");
             } else {
                 $(".snumod-form").trigger("reset");
             }
@@ -494,19 +571,26 @@ class SnUModifier {
             else header.find("header").text(`Modify ${props.user.username} (${type})`);
         });
 
-        inner.find(".snumod-reset").click(() => {
+        inner.find(".snumod-clear-button").click(() => {
+            $(".snumod-form").find("input:text").val("");
+            $("#snumod-usernickname").focus().select();
+        });
+
+        inner.find(".snumod-reset-button").click(() => {
             const cb = inner.children().find('input[type="checkbox"]');
             const enabled = cb.is(":checked");
 
-            if (type !== "Global" && enabled) { // get global from modifiers || ""
-                inner.find("#snumod-usernickname").val("");
-                inner.find("#snumod-useravatar").val("");
-                inner.find("#snumod-usernamecolour").val("");
-                inner.find("#snumod-usertextcolour").val("");
+            if (type !== "Global" && enabled) {
+                this.modifiers.global[props.user.id] = this.modifiers.global[props.user.id] || {};
+                inner.find("#snumod-usernickname").val(this.modifiers.global[props.user.id].nickname || "");
+                inner.find("#snumod-useravatar").val(this.modifiers.global[props.user.id].avatar || "");
+                inner.find("#snumod-usernamecolour").val(this.modifiers.global[props.user.id].namecolour || "");
+                inner.find("#snumod-usertextcolour").val(this.modifiers.global[props.user.id].textcolour || "");
             } else {
                 $(".snumod-form").trigger("reset");
             }
             if (enabled) cb.prop("checked", enabled);
+            $("#snumod-usernickname").focus().select();
         });
 
         const buttons = $("<div>", {class: "form-actions snumod-form-actions"})
@@ -543,10 +627,26 @@ class SnUModifier {
                 .append(header)
                 .append(inner)
                 .append(buttons)
-                .on("submit", ev => {
+                .submit(ev => {
                     ev.preventDefault();
-                    console.log($(ev.target).serializeObject());
-                    // manage data
+                    const data = $(ev.target).serializeObject();
+
+                    if (data.globalcheck) {
+                        this.modifiers.global[props.user.id].nickname = data.nickname || "";
+                        this.modifiers.global[props.user.id].avatar = data.avatar || "";
+                        this.modifiers.global[props.user.id].namecolour = data.namecolour || "";
+                        this.modifiers.global[props.user.id].textcolour = data.textcolour || "";
+                    } else if (type === "Server") {
+                        this.modifiers.servers[props.guildId].users[props.user.id].nickname = data.nickname || "";
+                        this.modifiers.servers[props.guildId].users[props.user.id].avatar = data.avatar || "";
+                        this.modifiers.servers[props.guildId].users[props.user.id].namecolour = data.namecolour || "";
+                        this.modifiers.servers[props.guildId].users[props.user.id].textcolour = data.textcolour || "";
+                    } else {
+                        this.modifiers.groups[props.channelId][props.user.id].nickname = data.nickname || "";
+                        this.modifiers.groups[props.channelId][props.user.id].avatar = data.avatar || "";
+                        this.modifiers.groups[props.channelId][props.user.id].namecolour = data.namecolour || "";
+                        this.modifiers.groups[props.channelId][props.user.id].textcolour = data.textcolour || "";
+                    }
 
                     const span = $(".snumod-modal-span");
 
@@ -575,6 +675,8 @@ class SnUModifier {
     }
 
     createServerModal(props) {
+        this.modifiers.servers[props.guild.id] = this.modifiers.servers[props.guild.id] || {};
+
         const header = $("<div>", {class: "form-header"}).append(`<header>Modify ${props.guild.name}</header>`);
 
         const inner = $("<div>", {class: "form-inner snumod-form-inner"}).append($("<div>", {class: "control-group"})
@@ -585,7 +687,7 @@ class SnUModifier {
                 id: "snumod-servername",
                 name: "name",
                 placeholder: props.guild.name,
-                value: ""
+                value: this.modifiers.servers[props.guild.id].name || ""
             }))
             .append($("<label for='snumod-servericon' class='snumod-label'>Icon URL</label>"))
             .append($("<input>", {
@@ -594,12 +696,22 @@ class SnUModifier {
                 id: "snumod-servericon",
                 name: "icon",
                 placeholder: props.guild.icon ? `https://cdn.discordapp.com/icons/${props.guild.id}/${props.guild.icon}.jpg` : "",
-                value: ""
+                value: this.modifiers.servers[props.guild.id].icon || ""
             }))
-            .append($("<div>", {class: "control-group snumod-reset"}).append("<br><label><a>Reset All</a></label><br>")));
+            .append($("<div>", {class: "control-group snumod-form-buttons"})));
 
-        inner.find(".snumod-reset").click(() => {
+        inner.find(".snumod-form-buttons")
+            .append($("<span>", {class: "snumod-clear-button"}).append("<label><a>Clear Form</a></label>"))
+            .append($("<span>", {class: "snumod-reset-button"}).append("<label><a>Reset Form</a></label>"));
+
+        inner.find(".snumod-clear-button").click(() => {
+            $(".snumod-form").find("input:text").val("");
+            $("#snumod-servername").focus().select();
+        });
+
+        inner.find(".snumod-reset-button").click(() => {
             $(".snumod-form").trigger("reset");
+            $("#snumod-servername").focus().select();
         });
 
         const buttons = $("<div>", {class: "form-actions snumod-form-actions"})
@@ -638,8 +750,10 @@ class SnUModifier {
                 .append(buttons)
                 .on("submit", ev => {
                     ev.preventDefault();
-                    console.log($(ev.target).serializeObject());
-                    // manage data
+                    const data = $(ev.target).serializeObject();
+
+                    this.modifiers.servers[props.guild.id].name = data.name;
+                    this.modifiers.servers[props.guild.id].icon = data.icon;
 
                     const span = $(".snumod-modal-span");
 
@@ -668,6 +782,10 @@ class SnUModifier {
     }
 
     createChannelModal(props, type) {
+        this.modifiers.servers[props.guild.id] = this.modifiers.servers[props.guild.id] || {};
+        this.modifiers.servers[props.guild.id].channels = this.modifiers.servers[props.guild.id].channels || {};
+        this.modifiers.servers[props.guild.id].channels[props.channel.id] = this.modifiers.servers[props.guild.id].channels[props.channel.id] || {};
+
         const header = $("<div>", {class: "form-header"}).append(`<header>Modify ${type === "Text" ? "#" : ""}${props.channel.name} (${type})</header>`);
 
         const inner = $("<div>", {class: "form-inner snumod-form-inner"}).append($("<div>", {class: "control-group"})
@@ -678,9 +796,13 @@ class SnUModifier {
                 id: "snumod-channelname",
                 name: "name",
                 placeholder: props.channel.name,
-                value: ""
+                value: this.modifiers.servers[props.guild.id].channels[props.channel.id].name || ""
             }))
-            .append($("<div>", {class: "control-group snumod-reset"}).append("<br><label><a>Reset All</a></label><br>")));
+            .append($("<div>", {class: "control-group snumod-form-buttons"})));
+
+        inner.find(".snumod-form-buttons")
+            .append($("<span>", {class: "snumod-clear-button"}).append("<label><a>Clear Form</a></label>"))
+            .append($("<span>", {class: "snumod-reset-button"}).append("<label><a>Reset Form</a></label>"));
 
         if (type === "Text") {
             inner.find("#snumod-channelname")
@@ -691,12 +813,18 @@ class SnUModifier {
                         id: "snumod-channeltopic",
                         name: "topic",
                         placeholder: props.channel.topic,
-                        value: ""
+                        value: this.modifiers.servers[props.guild.id].channels[props.channel.id].topic || ""
                     }));
         }
 
-        inner.find(".snumod-reset").click(() => {
+        inner.find(".snumod-clear-button").click(() => {
+            $(".snumod-form").find("input:text").val("");
+            $("#snumod-channelname").focus().select();
+        });
+
+        inner.find(".snumod-reset-button").click(() => {
             $(".snumod-form").trigger("reset");
+            $("#snumod-channelname").focus().select();
         });
 
         const buttons = $("<div>", {class: "form-actions snumod-form-actions"})
@@ -735,8 +863,10 @@ class SnUModifier {
                 .append(buttons)
                 .on("submit", ev => {
                     ev.preventDefault();
-                    console.log($(ev.target).serializeObject());
-                    // manage data
+                    const data = $(ev.target).serializeObject();
+
+                    this.modifiers.servers[props.guild.id].channels[props.channel.id].name = data.name;
+                    if (data.topic) this.modifiers.servers[props.guild.id].channels[props.channel.id].topic = data.topic;
 
                     const span = $(".snumod-modal-span");
 
@@ -775,7 +905,7 @@ class SnUModifier {
     }
 
     getVersion() {
-        return "0.0.6";
+        return "0.0.7";
     }
 
     getAuthor() {
