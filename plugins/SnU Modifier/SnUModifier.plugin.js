@@ -69,8 +69,8 @@ class SnUModifier {
         this.utility.loadScript("jQuery.serializeObject", "https://cdnjs.cloudflare.com/ajax/libs/jQuery.serializeObject/2.0.3/jquery.serializeObject.min.js");
         this.utility.loadScript("tinyColorPicker", "https://cdnjs.cloudflare.com/ajax/libs/tinyColorPicker/1.1.1/jqColorPicker.min.js");
 
-        //this.modifiers = this.utility.loadStorage("SnU Modifier", this.defaultModifiers);
-        this.modifiers = this.defaultModifiers;
+        this.modifiers = this.utility.loadStorage("SnU Modifier", this.defaultModifiers);
+        //this.modifiers = this.defaultModifiers;
         this.autoSaveInterval = setInterval(() => {
             this.utility.saveStorage("SnU Modifier", this.modifiers);
             //this.utility.log(this.modifiers);
