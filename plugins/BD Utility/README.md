@@ -2,7 +2,8 @@
 
 Contains utility functions used by some of my other plugins. Just download it to your plugin folder and it works. No need to enable it.
 
-If you're a plugin developer, feel free to use the utility plugin. You can pull out code to avoid dependency if you wish, but please credit.
+If you're a plugin developer, feel free to use the utility plugin. You can pull out code to avoid dependency if you wish, but please credit. 
+You could even copy and paste the entire code to the bottom of your plugin (minus meta tag) to avoid dependency.
 
 ## Console
 
@@ -26,7 +27,7 @@ Adds plugin name with choice of style to the front of console logging, helps dif
 
 ## Events
 
-Currently has the following events (provides event/element as first callback argument):
+Currently has the following events (provides mutation record/element as first callback argument):
 
 - **joinVoiceChannel**: a user joins a voice channel, provides a user & voice channel
 - **leaveVoiceChannel**:  a user leaves a voice channel, provides a voice channel
