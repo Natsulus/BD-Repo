@@ -10,38 +10,84 @@ class CreationDate {
 
         $("head").append(script);
 
-        const css = `.creation-date-wrapper {font-size: 12px; color: #fff; font-family: inherit; opacity: 0.6; margin-top: 10px;}`;
+        this.defaultSettings = {
+            css: "font-size: 12px; color: #fff; font-family: inherit; opacity: 0.6; margin-top: 10px;",
+            format: "Created on $(dS of MMM, yyyy)$"
+        };
 
-        BdApi.injectCSS("creation-date-css", css);
+        this.settings = this.loadSettings();
+
+        window.BdApi.injectCSS("creation-date-settings", `#creation-date-save-button {margin-left: 8px;} #creation-date-setting-css, #creation-date-setting-format {width: 420px;}`);
+        window.BdApi.injectCSS("creation-date-wrapper", `.creation-date-wrapper {${this.settings.css}}`);
     }
 
     stop() {
         $("#date-js").remove();
-        BdApi.clearCSS("creation-date-css");
+        window.BdApi.clearCSS("creation-date-settings");
+        window.BdApi.clearCSS("creation-date-wrapper");
     }
 
     observer(ev) {
         if (ev.addedNodes.length > 0 && ev.addedNodes[0].className && ev.addedNodes[0].className.includes("popout")
             && ev.addedNodes[0].childNodes.length > 0 && ev.addedNodes[0].childNodes[0].className.includes("user-popout")) {
             const user = this.getReactProps(ev.addedNodes[0].childNodes[0]).user;
+            const match = this.settings.format.match(/\$\((.*)\)\$/);
+            const date = this.getCreationDate(user.id, match[1]);
 
             $(ev.addedNodes[0].childNodes[0]).find(".header")
                 .append($("<div>", {
                     class: "creation-date-wrapper",
-                    text: `Created on ${this.getCreationDate(user.id, "MMMM dS, yyyy")}`
+                    text: this.settings.format.replace(match[0], date)
                 }));
         }
     }
+
+    getSettingsPanel() {
+        let html = "<h3>Settings</h3><br>";
+
+        html += "CSS<br>";
+        html += `<input id="creation-date-setting-css" type="text" value="${this.settings.css}"><br><br>`;
+        html += "Format<br>";
+        html += `<input id="creation-date-setting-format" type="text" value="${this.settings.format}"><br><br>`;
+        html += `<br><button id="creation-date-reset-button" onclick="BdApi.getPlugin('Creation Date').resetSettings(this)">Reset</button>`;
+        html += `<button id="creation-date-save-button" onclick="BdApi.getPlugin('Creation Date').saveSettings(this)">Save</button>`;
+
+        return html;
+    }
+
+    resetSettings(button) {
+        this.settings = $.extend(true, {}, this.defaultSettings);
+        document.getElementById("creation-date-setting-css").value = this.settings.css;
+        document.getElementById("creation-date-setting-format").value = this.settings.format;
+        localStorage.setItem("CreationDate", JSON.stringify(this.settings));
+        this.reloadCSS();
+
+        button.innerHTML = "Settings Resetted!";
+        setTimeout(() => {button.innerHTML = "Reset";}, 1000);
+    }
+
+    saveSettings(button) {
+        this.settings.css = document.getElementById("creation-date-setting-css").value;
+        this.settings.format = document.getElementById("creation-date-setting-format").value;
+        localStorage.setItem("CreationDate", JSON.stringify(this.settings));
+        this.reloadCSS();
+        button.innerHTML = "Settings Saving!";
+        setTimeout(() => {button.innerHTML = "Save";}, 1000);
+    }
+
+    loadSettings() {
+        return localStorage.getItem("CreationDate") && JSON.parse(localStorage.getItem("CreationDate")) || $.extend(true, {}, this.defaultSettings);
+    }
+
+    reloadCSS() {
+        window.BdApi.clearCSS("creation-date-wrapper");
+        window.BdApi.injectCSS("creation-date-wrapper", `.creation-date-wrapper {${this.settings.css}}`);
+    }
+
     getReactInstance(node) {
         return node[Object.keys(node).find(key => {
             return key.startsWith("__reactInternalInstance");
         })];
-    }
-
-    getReactObject(node) {
-        return (inst => {
-            if (inst) return inst._currentElement._owner._instance;
-        })(this.getReactInstance(node));
     }
 
     getReactProps(node) {
@@ -67,7 +113,7 @@ class CreationDate {
     }
 
     getVersion() {
-        return "1.0.0";
+        return "1.1.0";
     }
 
     getAuthor() {
@@ -80,10 +126,6 @@ class CreationDate {
 
     onSwitch() {
         // Better to use observer
-    }
-
-    getSettingsPanel() {
-        // To come with next update
     }
 
     load() {
