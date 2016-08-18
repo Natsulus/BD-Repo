@@ -43,12 +43,13 @@ class CreationDate {
     }
 
     getSettingsPanel() {
+        const settings = this.loadSettings();
         let html = "<h3>Settings</h3><br>";
 
         html += "CSS<br>";
-        html += `<input id="creation-date-setting-css" type="text" value="${this.settings.css}"><br><br>`;
+        html += `<input id="creation-date-setting-css" type="text" value="${settings.css}"><br><br>`;
         html += "Format<br>";
-        html += `<input id="creation-date-setting-format" type="text" value="${this.settings.format}"><br><br>`;
+        html += `<input id="creation-date-setting-format" type="text" value="${settings.format}"><br><br>`;
         html += `<br><button id="creation-date-reset-button" onclick="BdApi.getPlugin('Creation Date').resetSettings(this)">Reset</button>`;
         html += `<button id="creation-date-save-button" onclick="BdApi.getPlugin('Creation Date').saveSettings(this)">Save</button>`;
 
@@ -113,7 +114,7 @@ class CreationDate {
     }
 
     getVersion() {
-        return "1.1.0";
+        return "1.1.1";
     }
 
     getAuthor() {
