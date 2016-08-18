@@ -1,4 +1,4 @@
-**Current Version**: 1.1.0
+**Current Version**: 1.1.1
 
 ## How to Use
 
