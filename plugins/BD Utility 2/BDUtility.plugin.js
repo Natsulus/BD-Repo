@@ -428,9 +428,37 @@ class BDUtility {
             $(".settings-actions .btn-confirm").after($(".change-log-button").detach());
             $(".change-log-button-container").remove();
 
-            for (const plugin in this.plugins) {
-                if (this.plugins[plugin].settingsPanel) this.plugins[plugin].settingsPanel.show();
+            for (const plugin in this.plugins) if (this.plugins[plugin].settingsPanel) this.plugins[plugin].settingsPanel.show();
+        });
+
+        // Queue Mutations until BD Utility is started
+        this.onLoad = {};
+        this.onLoad.queue = [];
+        this.onLoad.ready = false;
+
+        const cookieInterval = setInterval(() => {
+            if (window.pluginCookie && Reflect.has(window.pluginCookie, this.getName())) {
+                if (!window.pluginCookie[this.getName()]) {
+                    window.pluginCookie[this.getName()] = true;
+                    window.pluginModule.savePluginData();
+                    setTimeout(() => {
+                        window.require("electron").remote.getCurrentWindow().reload(); // reload in case start doesn't get called
+                    }, 1000);
+                }
+                clearInterval(cookieInterval);
             }
+        }, 10);
+
+        this.mutationObserver = new MutationObserver(mutations => {
+            mutations.forEach(ev => {
+                if (this.onLoad.ready) this.eventObserver(ev);
+                else this.onLoad.queue.push(ev);
+            });
+        });
+
+        this.mutationObserver.observe(document, {
+            childList: true,
+            subtree: true
         });
 
         const panelInterval = setInterval(() => {
@@ -478,14 +506,6 @@ class BDUtility {
                 clearInterval(scriptInterval);
             }
         }, 100);
-
-        const cookieInterval = setInterval(() => {
-            if (window.pluginCookie && Reflect.has(window.pluginCookie, this.getName())) {
-                if (!window.pluginCookie[this.getName()]) window.pluginCookie[this.getName()] = true;
-                window.pluginModule.savePluginData();
-                clearInterval(cookieInterval);
-            }
-        }, 100);
     }
 
     init(name, style) {
@@ -497,14 +517,17 @@ class BDUtility {
     }
 
     start() {
-        //
+        setTimeout(() => {
+            this.onLoad.ready = true;
+            while(this.onLoad.queue.length > 0) this.eventObserver(this.onLoad.queue.shift());
+        }, 1000); // 1 second buffer for other plugins
     }
 
     stop() {
         //
     }
 
-    observer(ev) {
+    eventObserver(ev) {
         // Voice Join/Leave, Leaving doesn't provide user unfortunately
         if (ev.addedNodes.length === 1 && ev.removedNodes.length === 1 && ev.target.className.includes("channel-voice")) {
             if (ev.addedNodes[0].className && ev.addedNodes[0].className.includes("channel-voice-states")) {
@@ -702,20 +725,7 @@ class BDUtility {
             });
         }
 
-        // Load Server Messages/Member List on "Load"
-        if (ev.addedNodes.length === 1 && ev.removedNodes.length === 1 && ev.target.nodeName === "SECTION" && ev.target.className === "flex-horizontal flex-spacer") {
-            if (ev.addedNodes[0].className.includes("chat flex-vertical flex-spacer")) {
-                console.log(ev.addedNodes[0]);
-            }
-        }
-
-        // Load Server Channel List on "Load"
-        if (ev.addedNodes.length === 1 && ev.target.className.includes("flex-vertical channels-wrap")) {
-            if (ev.addedNodes[0].className.includes("flex-vertical flex-spacer")) {
-                console.log(ev.addedNodes[0]);
-            }
-        }
-
+        // User Settings Modal
         if (ev.addedNodes.length === 1 && ev.addedNodes[0].className && ev.addedNodes[0].className.includes("modal")) {
             if (ev.addedNodes[0].childNodes[0].childNodes[0].className.includes("user-settings-modal")) {
                 for (const plugin in this.plugins) {
@@ -724,7 +734,17 @@ class BDUtility {
             }
         }
 
-        //console.log(ev);
+        if (ev.addedNodes.length === 1 && ev.removedNodes.length === 0) {
+            //console.log(ev);
+        }
+
+        if (ev.addedNodes.length === 0 && ev.removedNodes.length === 1) {
+            //console.log(ev);
+        }
+
+        if (ev.addedNodes.length === 1 && ev.removedNodes.length === 1) {
+            //console.log(ev);
+        }
     }
 
     /*
@@ -747,7 +767,7 @@ class BDUtility {
     }
 
     getDescription() {
-        return "Utility functions for other plugins. No need to enable.";
+        return "Tons of Utility for Developers!";
     }
 
     getVersion() {
@@ -765,10 +785,10 @@ class BDUtility {
 
 (() => {
     const removeBDUtility = new MutationObserver(mutations => {
-        mutations.forEach(mutation => {
-            if (mutation.addedNodes.length !== 1) return;
+        mutations.forEach(ev => {
+            if (ev.addedNodes.length !== 1) return;
 
-            if (mutation.addedNodes[0].id === "bd-pane") {
+            if (ev.addedNodes[0].id === "bd-pane") {
                 $(".bda-name:contains(BD Utility)").parents("li").remove();
                 removeBDUtility.disconnect();
             }
