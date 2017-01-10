@@ -34,11 +34,20 @@ class CreationDate {
             const match = this.settings.format.match(/\$\((.*)\)\$/);
             const date = this.getCreationDate(user.id, match[1]);
 
-            $(ev.addedNodes[0].childNodes[0]).find(".header")
-                .append($("<div>", {
+            const header = $(ev.addedNodes[0].childNodes[0]).find(".header")
+
+            if (header[0].classList.length > 1) {
+                header.find(".activity").after($("<div>", {
                     class: "creation-date-wrapper",
                     text: this.settings.format.replace(match[0], date)
                 }));
+            } else {
+                header.find(".username-wrapper").append($("<div>", {
+                    class: "creation-date-wrapper",
+                    text: this.settings.format.replace(match[0], date)
+                }));
+            }
+
         }
     }
 
@@ -60,7 +69,7 @@ class CreationDate {
         this.settings = $.extend(true, {}, this.defaultSettings);
         document.getElementById("creation-date-setting-css").value = this.settings.css;
         document.getElementById("creation-date-setting-format").value = this.settings.format;
-        localStorage.setItem("CreationDate", JSON.stringify(this.settings));
+        bdPluginStorage.set("CreationDate", "settings", JSON.stringify(this.settings));
         this.reloadCSS();
 
         button.innerHTML = "Settings Resetted!";
@@ -70,14 +79,14 @@ class CreationDate {
     saveSettings(button) {
         this.settings.css = document.getElementById("creation-date-setting-css").value;
         this.settings.format = document.getElementById("creation-date-setting-format").value;
-        localStorage.setItem("CreationDate", JSON.stringify(this.settings));
+        bdPluginStorage.set("CreationDate", "settings", JSON.stringify(this.settings));
         this.reloadCSS();
         button.innerHTML = "Settings Saving!";
         setTimeout(() => {button.innerHTML = "Save";}, 1000);
     }
 
     loadSettings() {
-        return localStorage.getItem("CreationDate") && JSON.parse(localStorage.getItem("CreationDate")) || $.extend(true, {}, this.defaultSettings);
+        return bdPluginStorage.get("CreationDate", "settings") && JSON.parse(bdPluginStorage.get("CreationDate", "settings")) || $.extend(true, {}, this.defaultSettings);
     }
 
     reloadCSS() {
@@ -114,7 +123,7 @@ class CreationDate {
     }
 
     getVersion() {
-        return "1.1.1";
+        return "1.1.2";
     }
 
     getAuthor() {

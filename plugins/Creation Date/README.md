@@ -1,10 +1,10 @@
-**Current Version**: 1.1.1
+**Current Version**: 1.1.2
 
 ## How to Use
 
 1. Download and Enable Plugin
 2. Modify the CSS and Format in the Settings Panel
-3. Click on a user to for a modal popout which should also contain their Creation Date
+3. Click on a user for a modal popout which should also contain their Creation Date
 
 ## CSS
 
@@ -25,3 +25,7 @@ This plugin uses Datejs, so check out how to format the date section here: https
 The formatted date section should be between `$(` and `)$`.
 
 You can insert text within the formatted date section, however the following characters will not be escaped: `S, s, H, h, M, m, d, y`
+
+## v2 Plan
+- Get creation date for servers, channels, and messages!
+- Position options

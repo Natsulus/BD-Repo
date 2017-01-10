@@ -533,15 +533,13 @@ class BDUtility {
             if (ev.addedNodes[0].className && ev.addedNodes[0].className.includes("channel-voice-states")) {
                 const props = this.utils.getReactProps(ev.addedNodes[0].childNodes[0]);
 
-                for (const plugin in this.plugins) {
+                for (const plugin in this.plugins)
                     this.plugins[plugin].event.trigger("joinVoiceChannel", ev.addedNodes[0], props.user, props.channel);
-                }
             } else if (ev.removedNodes[0].className && ev.removedNodes[0].className.includes("channel-voice-states")) {
                 const props = this.utils.getReactProps(ev.target);
 
-                for (const plugin in this.plugins) {
+                for (const plugin in this.plugins)
                     this.plugins[plugin].event.trigger("leaveVoiceChannel", ev.removedNodes[0], props.channel);
-                }
             }
         }
 
@@ -583,16 +581,14 @@ class BDUtility {
                     const props = this.utils.getReactProps(el.childNodes[0]);
 
                     if (Reflect.has(props, "user")) {
-                        for (const plugin in this.plugins) {
+                        for (const plugin in this.plugins)
                             this.plugins[plugin].event.trigger("loadFriend", el, props.user, props.mutualGuilds);
-                        }
                     }
                 });
 
 
-                for (const plugin in this.plugins) {
+                for (const plugin in this.plugins)
                     this.plugins[plugin].event.trigger("loadFriendList", ev.addedNodes[0]);
-                }
             }
         }
 
@@ -601,17 +597,15 @@ class BDUtility {
             const props = this.utils.getReactProps(ev.target);
 
             if (Reflect.has(props, "channel")) {
-                for (const plugin in this.plugins) {
+                for (const plugin in this.plugins)
                     this.plugins[plugin].event.trigger("userTyping", ev.addedNodes[0], props.channel);
-                }
             }
         }
 
         // Show Member List
         if (ev.addedNodes.length === 1 && ev.addedNodes[0].className === "channel-members-wrap" && ev.target.className === "content flex-spacer flex-horizontal") {
-            for (const plugin in this.plugins) {
+            for (const plugin in this.plugins)
                 this.plugins[plugin].event.trigger("showMemberList", ev.addedNodes[0]);
-            }
         }
 
         // DM Page to Server
@@ -619,9 +613,8 @@ class BDUtility {
             const props = this.utils.getReactProps(ev.addedNodes[0]);
 
             if (Reflect.has(props, "guild")) {
-                for (const plugin in this.plugins) {
+                for (const plugin in this.plugins)
                     this.plugins[plugin].event.trigger("loadServer", ev.addedNodes[0], props.guild);
-                }
             }
         }
 
@@ -630,9 +623,8 @@ class BDUtility {
             const props = this.utils.getReactProps(ev.addedNodes[0].childNodes[0]);
 
             if (Reflect.has(props, "user")) {
-                for (const plugin in this.plugins) {
+                for (const plugin in this.plugins)
                     this.plugins[plugin].event.trigger("loadFriend", ev.addedNodes[0], props.user, props.mutualGuilds);
-                }
             }
         }
 
@@ -642,22 +634,19 @@ class BDUtility {
                 const props = this.utils.getReactProps(ev.addedNodes[0].childNodes[0]);
 
                 if (Reflect.has(props, "user")) {
-                    for (const plugin in this.plugins) {
+                    for (const plugin in this.plugins)
                         this.plugins[plugin].event.trigger("userPopout", ev.addedNodes[0], props.user);
-                    }
                 }
             } else if (ev.addedNodes[0].childNodes[0].className.includes("undefined")) {
                 const props = this.utils.getReactProps(ev.addedNodes[0].childNodes[0]);
 
                 if (Reflect.has(props, "channel")) {
-                    for (const plugin in this.plugins) {
+                    for (const plugin in this.plugins)
                         this.plugins[plugin].event.trigger("pinnedPopout", ev.addedNodes[0], props.channel);
-                    }
                 }
             } else if (ev.addedNodes[0].childNodes[0].className.includes("recent-mentions-popout")) {
-                for (const plugin in this.plugins) {
+                for (const plugin in this.plugins)
                     this.plugins[plugin].event.trigger("mentionsPopout", ev.addedNodes[0]);
-                }
             }
         }
 
@@ -666,9 +655,8 @@ class BDUtility {
             const props = this.utils.getReactProps(ev.addedNodes[0]);
 
             if (Reflect.has(props, "user")) {
-                for (const plugin in this.plugins) {
+                for (const plugin in this.plugins)
                     this.plugins[plugin].event.trigger("loadMember", ev.addedNodes[0], props.user, props.activity);
-                }
             }
         }
 
@@ -678,25 +666,22 @@ class BDUtility {
                 const props = this.utils.getReactProps(ev.target);
 
                 if (props) {
-                    for (const plugin in this.plugins) {
+                    for (const plugin in this.plugins)
                         this.plugins[plugin].event.trigger("subContextMenu", ev.addedNodes[0], props);
-                    }
                 }
             }
             const props = this.utils.getReactProps(ev.addedNodes[0]);
 
             if (props) {
-                for (const plugin in this.plugins) {
+                for (const plugin in this.plugins)
                     this.plugins[plugin].event.trigger("contextMenu", ev.addedNodes[0], props);
-                }
             }
         }
 
         // Hide Member list
         if (ev.removedNodes.length === 1 && ev.removedNodes[0].className === "channel-members-wrap" && ev.target.className === "content flex-spacer flex-horizontal") {
-            for (const plugin in this.plugins) {
+            for (const plugin in this.plugins)
                 this.plugins[plugin].event.trigger("hideMemberList", ev.removedNodes[0]);
-            }
         }
 
         // Message on Switch
@@ -705,9 +690,8 @@ class BDUtility {
                 const props = this.utils.getReactProps(el);
 
                 if (Reflect.has(props, "message")) {
-                    for (const plugin in this.plugins) {
+                    for (const plugin in this.plugins)
                         this.plugins[plugin].event.trigger("message", el, props.message, props.channel);
-                    }
                 }
             });
         }
@@ -718,9 +702,8 @@ class BDUtility {
                 const props = this.utils.getReactProps(el);
 
                 if (Reflect.has(props, "message")) {
-                    for (const plugin in this.plugins) {
+                    for (const plugin in this.plugins)
                         this.plugins[plugin].event.trigger("message", el, props.message, props.channel);
-                    }
                 }
             });
         }
@@ -728,9 +711,8 @@ class BDUtility {
         // User Settings Modal
         if (ev.addedNodes.length === 1 && ev.addedNodes[0].className && ev.addedNodes[0].className.includes("modal")) {
             if (ev.addedNodes[0].childNodes[0].childNodes[0].className.includes("user-settings-modal")) {
-                for (const plugin in this.plugins) {
+                for (const plugin in this.plugins)
                     this.plugins[plugin].event.trigger("userSettings", ev.addedNodes[0]);
-                }
             }
         }
 

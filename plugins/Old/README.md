@@ -1,0 +1,1 @@
+Old code to use as a reference for rewrites as I tend to rewrite incomplete code when I find a different implementation approach is better.
