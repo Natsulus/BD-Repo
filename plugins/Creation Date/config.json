@@ -1,0 +1,26 @@
+{
+  "info": {
+    "name": "Creation Date",
+    "authors": [ "Natsulus" ],
+    "version": "1.2a",
+    "description": "See when a user's account was created.",
+    "repository": "https://github.com/Natsulus/BD-Repo",
+    "homepage": "https://github.com/Natsulus/BD-Repo",
+    "reloadable":  true
+  },
+  "defaultSettings": [
+    {
+      "id": "css",
+      "type": "string",
+      "description": "CSS for text display.",
+      "value": "font-size: 12px; color: #fff; font-family: inherit; opacity: 0.6; margin-top: 10px;"
+    },
+    {
+      "id": "format",
+      "type": "string",
+      "description": "Format of text display.",
+      "value":  "Created on $(dS of MMM, yyyy)$"
+    }
+  ],
+  "permissions": []
+}

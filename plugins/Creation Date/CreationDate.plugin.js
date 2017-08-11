@@ -2,7 +2,7 @@
 
 class CreationDate {
     start() {
-        const script = $("<script>", {
+        const script =  $("<script>", {
             type: "text/javascript",
             src: "https://cdnjs.cloudflare.com/ajax/libs/datejs/1.0/date.min.js",
             id: "date-js"
@@ -11,7 +11,7 @@ class CreationDate {
         $("head").append(script);
 
         this.defaultSettings = {
-            css: "font-size: 12px; color: #fff; font-family: inherit; opacity: 0.6; margin-top: 10px;",
+            css: "font-size: 12px; color: #fff; font-family: inherit; opacity: 0.6; margin-bottom: 10px;",
             format: "Created on $(dS of MMM, yyyy)$"
         };
 
@@ -28,27 +28,27 @@ class CreationDate {
     }
 
     observer(ev) {
-        if (ev.addedNodes.length > 0 && ev.addedNodes[0].className && ev.addedNodes[0].className.includes("popout")
-            && ev.addedNodes[0].childNodes.length > 0 && ev.addedNodes[0].childNodes[0].className.includes("user-popout")) {
-            const user = this.getReactProps(ev.addedNodes[0].childNodes[0]).user;
-            const match = this.settings.format.match(/\$\((.*)\)\$/);
-            const date = this.getCreationDate(user.id, match[1]);
+		if (ev.addedNodes.length > 0 && ev.addedNodes[0].className && typeof ev.addedNodes[0].className === "string" && ev.addedNodes[0].className.includes("popout") 
+			&& ev.addedNodes[0].childNodes.length > 0 && ev.addedNodes[0].childNodes[0].className.includes("userPopout")) {
+				const user = this.getOwnerInstance(ev.addedNodes[0].childNodes[0], {}).props.user;
+				const match = this.settings.format.match(/\$\((.*)\)\$/);
+				const date = this.getCreationDate(user.id, match[1]);
 
-            const header = $(ev.addedNodes[0].childNodes[0]).find(".header")
-
-            if (header[0].classList.length > 1) {
-                header.find(".activity").after($("<div>", {
-                    class: "creation-date-wrapper",
-                    text: this.settings.format.replace(match[0], date)
-                }));
-            } else {
-                header.find(".username-wrapper").append($("<div>", {
-                    class: "creation-date-wrapper",
-                    text: this.settings.format.replace(match[0], date)
-                }));
-            }
-
-        }
+				const activity = $(ev.addedNodes[0].childNodes[0]).find(".headerActivityText-3qBQRo");
+				
+				if (activity[0].childNodes.length > 0) {
+					activity.parent().after($("<div>", {
+						class: "creation-date-wrapper",
+						text: this.settings.format.replace(match[0], date)
+					}));
+				} else {
+					activity.parent().before($("<div>", {
+						class: "creation-date-wrapper",
+						text: this.settings.format.replace(match[0], date)
+					}));
+				}
+				
+			}
     }
 
     getSettingsPanel() {
@@ -93,19 +93,50 @@ class CreationDate {
         window.BdApi.clearCSS("creation-date-wrapper");
         window.BdApi.injectCSS("creation-date-wrapper", `.creation-date-wrapper {${this.settings.css}}`);
     }
+	
+	getInternalInstance(e) {
+		return e[Object.keys(e).find(k => k.startsWith("__reactInternalInstance"))];
+	}
+	
+    getOwnerInstance(e, {include, exclude = ["Popout", "Tooltip", "Scroller", "BackgroundFlash"]} = {}) {
+        if (e === undefined) {
+            return undefined;
+        }
+        const excluding = include === undefined;
+        const filter = excluding ? exclude : include;
 
-    getReactInstance(node) {
-        return node[Object.keys(node).find(key => {
-            return key.startsWith("__reactInternalInstance");
-        })];
-    }
+        function getDisplayName(owner) {
+            const type = owner._currentElement.type;
+            const constructor = owner._instance && owner._instance.constructor;
+            return type.displayName || constructor && constructor.displayName || null;
+        }
 
-    getReactProps(node) {
-        return (inst => {
-            if (inst) return inst._currentElement._owner._instance.props;
-        })(this.getReactInstance(node));
-    }
+        function classFilter(owner) {
+            const name = getDisplayName(owner);
+            return (name !== null && !!(filter.includes(name) ^ excluding));
+        }
 
+        for (let prev, curr = this.getInternalInstance(e); !_.isNil(curr); prev = curr, curr = curr._hostParent) {
+            if (prev !== undefined && !_.isNil(curr._renderedChildren)) {
+                let owner = Object.values(curr._renderedChildren)
+                    .find(v => !_.isNil(v._instance) && v.getHostNode() === prev.getHostNode());
+                if (!_.isNil(owner) && classFilter(owner)) {
+                    return owner._instance;
+                }
+            }
+
+            if (_.isNil(curr._currentElement)) {
+                continue;
+            }
+            let owner = curr._currentElement._owner;
+            if (!_.isNil(owner) && classFilter(owner)) {
+                return owner._instance;
+            }
+        }
+
+        return null;
+    };
+	
     getCreationDate(id, format) {
         return new Date(this.getCreationTimestamp(id)).toString(format);
     }
@@ -123,11 +154,11 @@ class CreationDate {
     }
 
     getVersion() {
-        return "1.1.2";
+        return "1.1.3";
     }
 
     getAuthor() {
-        return `<a href="https://github.com/Natsulus/BD-Repo" target="_BLANK">Natsulus</a>`;
+        return "Natsulus";
     }
 
     onMessage() {
