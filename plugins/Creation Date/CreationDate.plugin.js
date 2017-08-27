@@ -37,12 +37,12 @@ class CreationDate {
 				const activity = $(ev.addedNodes[0].childNodes[0]).find(".headerActivityText-3qBQRo");
 				
 				if (activity[0].childNodes.length > 0) {
-					activity.parent().after($("<div>", {
+					activity.after($("<div>", {
 						class: "creation-date-wrapper",
 						text: this.settings.format.replace(match[0], date)
 					}));
 				} else {
-					activity.parent().before($("<div>", {
+					activity.before($("<div>", {
 						class: "creation-date-wrapper",
 						text: this.settings.format.replace(match[0], date)
 					}));
@@ -154,7 +154,7 @@ class CreationDate {
     }
 
     getVersion() {
-        return "1.1.3";
+        return "1.1.4";
     }
 
     getAuthor() {
