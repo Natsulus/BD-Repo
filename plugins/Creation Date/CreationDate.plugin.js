@@ -30,7 +30,7 @@ class CreationDate {
     observer(ev) {
 		if (ev.addedNodes.length > 0 && ev.addedNodes[0].className && typeof ev.addedNodes[0].className === "string" && ev.addedNodes[0].className.includes("popout") 
 			&& ev.addedNodes[0].childNodes.length > 0 && ev.addedNodes[0].childNodes[0].className.includes("userPopout")) {
-				const user = this.getOwnerInstance(ev.addedNodes[0].childNodes[0], {}).props.user;
+				const user = this.getInternalInstance(ev.addedNodes[0]).memoizedProps.children.props.user;
 				const match = this.settings.format.match(/\$\((.*)\)\$/);
 				const date = this.getCreationDate(user.id, match[1]);
 
@@ -98,45 +98,6 @@ class CreationDate {
 		return e[Object.keys(e).find(k => k.startsWith("__reactInternalInstance"))];
 	}
 	
-    getOwnerInstance(e, {include, exclude = ["Popout", "Tooltip", "Scroller", "BackgroundFlash"]} = {}) {
-        if (e === undefined) {
-            return undefined;
-        }
-        const excluding = include === undefined;
-        const filter = excluding ? exclude : include;
-
-        function getDisplayName(owner) {
-            const type = owner._currentElement.type;
-            const constructor = owner._instance && owner._instance.constructor;
-            return type.displayName || constructor && constructor.displayName || null;
-        }
-
-        function classFilter(owner) {
-            const name = getDisplayName(owner);
-            return (name !== null && !!(filter.includes(name) ^ excluding));
-        }
-
-        for (let prev, curr = this.getInternalInstance(e); !_.isNil(curr); prev = curr, curr = curr._hostParent) {
-            if (prev !== undefined && !_.isNil(curr._renderedChildren)) {
-                let owner = Object.values(curr._renderedChildren)
-                    .find(v => !_.isNil(v._instance) && v.getHostNode() === prev.getHostNode());
-                if (!_.isNil(owner) && classFilter(owner)) {
-                    return owner._instance;
-                }
-            }
-
-            if (_.isNil(curr._currentElement)) {
-                continue;
-            }
-            let owner = curr._currentElement._owner;
-            if (!_.isNil(owner) && classFilter(owner)) {
-                return owner._instance;
-            }
-        }
-
-        return null;
-    };
-	
     getCreationDate(id, format) {
         return new Date(this.getCreationTimestamp(id)).toString(format);
     }
@@ -154,7 +115,7 @@ class CreationDate {
     }
 
     getVersion() {
-        return "1.1.4";
+        return "1.1.5";
     }
 
     getAuthor() {
