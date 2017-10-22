@@ -8,6 +8,17 @@ class CreationDate {
             id: "date-js"
         });
 
+        var libraryScript = document.getElementById('zeresLibraryScript');
+        if (libraryScript) libraryScript.parentElement.removeChild(libraryScript);
+        libraryScript = document.createElement("script");
+        libraryScript.setAttribute("type", "text/javascript");
+        libraryScript.setAttribute("src", "https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js");
+        libraryScript.setAttribute("id", "zeresLibraryScript");
+        document.head.appendChild(libraryScript);
+
+        if (typeof window.ZeresLibrary !== "undefined") this.initialize();
+        else libraryScript.addEventListener("load", () => { this.initialize(); });
+
         $("head").append(script);
 
         this.defaultSettings = {
@@ -25,6 +36,10 @@ class CreationDate {
         $("#date-js").remove();
         window.BdApi.clearCSS("creation-date-settings");
         window.BdApi.clearCSS("creation-date-wrapper");
+    }
+
+    initialize() {
+        PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://raw.githubusercontent.com/Natsulus/BD-Repo/master/plugins/Creation%20Date/CreationDate.plugin.js");
     }
 
     observer(ev) {
