@@ -34,7 +34,7 @@ class CreationDate {
 				const match = this.settings.format.match(/\$\((.*)\)\$/);
 				const date = this.getCreationDate(user.id, match[1]);
 
-				const activity = $(ev.addedNodes[0].childNodes[0]).find(".headerActivityText-3qBQRo");
+				const activity = $(ev.addedNodes[0].childNodes[0]).find(".headerText-3tKBWq");
 				
 				if (activity[0].childNodes.length > 0) {
 					activity.after($("<div>", {
@@ -115,7 +115,7 @@ class CreationDate {
     }
 
     getVersion() {
-        return "1.1.5";
+        return "1.1.6";
     }
 
     getAuthor() {
